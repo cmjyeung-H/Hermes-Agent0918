@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>我的待辦事項</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #232735;
+    --text: #e9edf5;
+    --muted: #9aa3b5;
+    --accent: #6c8cff;
+    --accent-2: #4f6ef7;
+    --done: #3ecf8e;
+    --danger: #ff6b6b;
+    --radius: 16px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    color: var(--text);
+    background: radial-gradient(1200px 800px at 20% -10%, #1c2136 0%, var(--bg) 55%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 48px 16px;
+  }
+  .app {
+    width: 100%;
+    max-width: 520px;
+  }
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: .3px;
+  }
+  .count {
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--surface-2);
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+  .add-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  input[type=text] {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid transparent;
+    color: var(--text);
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color .15s, background .15s;
+  }
+  input[type=text]::placeholder { color: var(--muted); }
+  input[type=text]:focus {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+  button.add {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .08s, filter .15s;
+    white-space: nowrap;
+  }
+  button.add:hover { filter: brightness(1.08); }
+  button.add:active { transform: scale(.97); }
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,.04);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    animation: pop .18s ease;
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+  .item.done { opacity: .62; }
+  .check {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 2px solid var(--muted);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+    padding: 0;
+  }
+  .check:hover { border-color: var(--done); }
+  .item.done .check {
+    background: var(--done);
+    border-color: var(--done);
+  }
+  .check svg {
+    width: 15px;
+    height: 15px;
+    stroke: #fff;
+    stroke-width: 3;
+    fill: none;
+    opacity: 0;
+  }
+  .item.done .check svg { opacity: 1; }
+  .label {
+    flex: 1;
+    font-size: 15px;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+  .item.done .label {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+  .del {
+    flex: 0 0 auto;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 8px;
+    transition: color .15s, background .15s;
+  }
+  .del:hover { color: var(--danger); background: rgba(255,107,107,.12); }
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .filters button {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid transparent;
+    color: var(--muted);
+    padding: 9px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all .15s;
+  }
+  .filters button:hover { background: var(--surface-2); color: var(--text); }
+  .filters button.active {
+    background: var(--surface-2);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 0;
+    font-size: 14px;
+    border: 1px dashed rgba(255,255,255,.1);
+    border-radius: var(--radius);
+  }
+  .clear {
+    margin-top: 14px;
+    text-align: right;
+  }
+  .clear button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .clear button:hover { color: var(--danger); }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>待辦事項</h1>
+      <span class="count" id="count">0 項</span>
+    </header>
+
+    <div class="add-row">
+      <input id="newTask" type="text" placeholder="新增一個待辦事項…" autocomplete="off" maxlength="200" />
+      <button class="add" id="addBtn">新增</button>
+    </div>
+
+    <ul class="list" id="list"></ul>
+
+    <div class="filters">
+      <button data-filter="all" class="active">全部</button>
+      <button data-filter="active">未完成</button>
+      <button data-filter="done">已完成</button>
+    </div>
+
+    <div class="clear">
+      <button id="clearDone">清除已完成</button>
+    </div>
+  </div>
+
+<script>
+  const STORAGE_KEY = "todo_items_v1";
+  let items = load();
+  let filter = "all";
+
+  const listEl = document.getElementById("list");
+  const inputEl = document.getElementById("newTask");
+  const addBtn = document.getElementById("addBtn");
+  const countEl = document.getElementById("count");
+  const clearBtn = document.getElementById("clearDone");
+  const filterBtns = document.querySelectorAll(".filters button");
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function addTask() {
+    const text = inputEl.value.trim();
+    if (!text) return;
+    items.push({ id: uid(), text: text, done: false });
+    inputEl.value = "";
+    save();
+    render();
+  }
+  function toggle(id) {
+    const it = items.find(x => x.id === id);
+    if (it) { it.done = !it.done; save(); render(); }
+  }
+  function remove(id) {
+    items = items.filter(x => x.id !== id);
+    save(); render();
+  }
+  function clearDone() {
+    items = items.filter(x => !x.done);
+    save(); render();
+  }
+  function setFilter(f) {
+    filter = f;
+    filterBtns.forEach(b => b.classList.toggle("active", b.dataset.filter === f));
+    render();
+  }
+
+  const checkSVG = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+  function render() {
+    const visible = items.filter(it => {
+      if (filter === "active") return !it.done;
+      if (filter === "done") return it.done;
+      return true;
+    });
+
+    if (visible.length === 0) {
+      listEl.innerHTML = '<div class="empty">' +
+        (items.length === 0 ? "尚無待辦事項，輸入上方新增。" : "此篩選下暫無項目。") + '</div>';
+    } else {
+      listEl.innerHTML = visible.map(it => `
+        <li class="item ${it.done ? "done" : ""}">
+          <button class="check" data-toggle="${it.id}" aria-label="切換完成狀態" title="${it.done ? '標記未完成' : '標記完成'}">
+            ${checkSVG}
+          </button>
+          <span class="label">${escapeHTML(it.text)}</span>
+          <button class="del" data-del="${it.id}" aria-label="刪除" title="刪除">×</button>
+        </li>`).join("");
+    }
+
+    const active = items.filter(i => !i.done).length;
+    countEl.textContent = `${active} 項未完成 / ${items.length} 項`;
+
+    clearBtn.style.visibility = items.some(i => i.done) ? "visible" : "hidden";
+  }
+
+  function escapeHTML(s) {
+    return s.replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  addBtn.addEventListener("click", addTask);
+  inputEl.addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
+  listEl.addEventListener("click", e => {
+    const t = e.target.closest("[data-toggle]");
+    const d = e.target.closest("[data-del]");
+    if (t) toggle(t.dataset.toggle);
+    else if (d) remove(d.dataset.del);
+  });
+  clearBtn.addEventListener("click", clearDone);
+  filterBtns.forEach(b => b.addEventListener("click", () => setFilter(b.dataset.filter)));
+
+  render();
+</script>
+</body>
+</html>
